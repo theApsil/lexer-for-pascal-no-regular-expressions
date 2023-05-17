@@ -12,9 +12,12 @@ class Token:
 
 
 class Lexer:
-    def __init__(self, file):
-        self.file = open(file, 'r')
-        self.state = None
+    def __init__(self, input_string):
+        self.input_string = input_string
+        self.input_length = len(input_string)
+        self.current_pos = 0
+        self.current_char = None
+        self.row, self.col = 1, 0
 
     # Типы лексем (токенов)
     PROGRAM, VAR, BEGIN, INTEGER, REAL, \
@@ -96,10 +99,10 @@ class Lexer:
         'and'       : AND,
         'in'        : IN,
         'end'       : END,
-        'var'       : VAR,
-        'program'   : PROGRAM,
         'then'      : THEN,
-        'begin'     : BEGIN
+        'begin'     : BEGIN,
+        'var'       : VAR,
+        'program'   : PROGRAM
     }
 
     RESERVED_NAMES = {
@@ -109,6 +112,7 @@ class Lexer:
         'readln'  : READLN,
         'true'    : TRUE,
         'false'   : FALSE,
+        'until'   : UNTIL
     }
 
     n_tabs = 4
@@ -147,8 +151,11 @@ class Lexer:
         if self.current_char == '\n':
             self.row += 1
             self.col = 0
-        self.current_char = self.file.read(1)
-        self.col += 1
+        if self.current_pos < self.input_length:
+            self.current_char = self.input_string[self.current_pos]
+            self.current_pos += 1
+        else:
+            self.current_char = None
 
 
     def get_next_token(self):
@@ -168,27 +175,7 @@ class Lexer:
                     self.get_next_char()
             # whitespaces and tabulation
             elif self.current_char in [' ', '\t', '\n']:
-                match self.current_char:
-                    case '\t':
-                        self.state = Lexer.SYMBOLS[self.current_char]
-                        self.value = self.current_char
-                        self.get_next_char()
-                    case ' ':
-                        tabulation = ""
-                        col = self.col
-                        while self.current_char == ' ':
-                            tabulation += self.current_char
-                            self.get_next_char()
-                            if len(tabulation) == self.n_tabs and col == 1: # if new line
-                                self.state = Lexer.SYMBOLS[tabulation]
-                                self.value = tabulation
-                        if len(tabulation) != self.n_tabs and len(tabulation) > 1: # if new line
-                            if col == 1:
-                                self.error(f'Incorrect indent')
-                    case '\n':
-                        self.state = self.state = Lexer.SYMBOLS[self.current_char]
-                        self.value = self.current_char
-                        self.get_next_char()
+                self.get_next_char()
             # string quote1
             elif self.current_char == "'":
                 self.state = Lexer.STRING
@@ -258,5 +245,7 @@ class Lexer:
                     self.value = identifier
             else:
                 self.error(f'Unexpected symbol: {self.current_char}')
+
+
         token = Token(self.row, self.col, self.state, self.value)
         return token
