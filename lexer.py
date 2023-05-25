@@ -84,7 +84,7 @@ class Lexer:
         IN           : "in",
         NEWLINE      : "newline",
         RESULT       : "result",
-        IDENTIFIER: "identifier"
+        IDENTIFIER   : "identifier"
     }
 
     KEYWORDS = {
@@ -137,11 +137,10 @@ class Lexer:
         "'": SINGLE_QUOTE,
         '"': DOUBLE_QUOTE,
         '.': DOT,
-        '\n': NEWLINE,
+        '\n': NEWLINE
     }
 
-    current_char = None
-    row, col = 1, 0
+
 
     def error(self, message):
         print("Lexer error:", message, f"at line {self.row}, index {self.col - 1}")
@@ -154,8 +153,10 @@ class Lexer:
         if self.current_pos < self.input_length:
             self.current_char = self.input_string[self.current_pos]
             self.current_pos += 1
+            self.col += 1
         else:
             self.current_char = None
+            self.current_pos = 0
 
 
     def get_next_token(self):
@@ -168,10 +169,24 @@ class Lexer:
             if len(self.current_char) == 0:
                 self.state = Lexer.EOF
             # comment
-            elif self.current_char == '#':
-                while self.current_char not in ['\n', '']:
-                    self.get_next_char()
-                if self.current_char == "\n":
+            elif self.current_char == '/':
+                # while self.current_char != '/':
+                #     self.get_next_char()
+                # if self.current_char != '/':
+                #     while self.current_char not in ['', '\n']:
+                #         self.get_next_char()
+                #     if self.current_char == "\n":
+                #         self.get_next_char()
+                previousChar = self.current_char
+                self.get_next_char()
+                if previousChar == self.current_char == '/':
+                    while self.current_char not in ['', '\n']:
+                        self.get_next_char()
+                    if self.current_char == "\n":
+                        self.get_next_char()
+                else:
+                    self.state = Lexer.DIVIDE
+                    self.value = '/'
                     self.get_next_char()
             # whitespaces and tabulation
             elif self.current_char in [' ', '\t', '\n']:
@@ -201,6 +216,10 @@ class Lexer:
                     if self.current_char == '=':
                         self.state = Lexer.ASSIGN
                         self.value = ':='
+                        self.get_next_char()
+                    else:
+                        self.state = Lexer.COLON
+                        self.value = ':'
                         self.get_next_char()
                 else:
                     self.state = Lexer.SYMBOLS[self.current_char]
