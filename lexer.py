@@ -29,7 +29,7 @@ class Lexer:
     TAB, DOT, COMMA, COLON, SEMICOLON, \
     SINGLE_QUOTE, DOUBLE_QUOTE, \
     PLUS, MINUS, MULTIPLY, ASSIGN, DIVIDE, END, EOF, \
-    AND, NOT, IN, NEWLINE, RESULT, EQUAL = range(52)
+    AND, NOT, IN, NEWLINE, RESULT, EQUAL, ARRAY, TO, OF = range(55)
 
 
     PRESENTATION = {
@@ -39,6 +39,7 @@ class Lexer:
         INTEGER      : "integer",
         REAL         : "real",
         BOOLEAN      : "boolean",
+        ARRAY        : "array",
         CHAR         : "char",
         STRING       : "string",
         IF           : "if",
@@ -54,6 +55,7 @@ class Lexer:
         NOT          : "not",
         WRITE        : "write",
         READ         : "read",
+        TO           : "to",
         WRITELN      : "writeln",
         READLN       : "readln",
         FOR          : "for",
@@ -95,6 +97,7 @@ class Lexer:
         'do'        : DO,
         'function'  : FUNCTION,
         'procedure' : PROCEDURE,
+        'array'     : ARRAY,
         'repeat'    : REPEAT,
         'and'       : AND,
         'in'        : IN,
@@ -111,8 +114,10 @@ class Lexer:
         'writeln' : WRITELN,
         'readln'  : READLN,
         'true'    : TRUE,
+        'to'      : TO,
         'false'   : FALSE,
-        'until'   : UNTIL
+        'until'   : UNTIL,
+        'of'      : OF
     }
 
     n_tabs = 4
@@ -170,13 +175,6 @@ class Lexer:
                 self.state = Lexer.EOF
             # comment
             elif self.current_char == '/':
-                # while self.current_char != '/':
-                #     self.get_next_char()
-                # if self.current_char != '/':
-                #     while self.current_char not in ['', '\n']:
-                #         self.get_next_char()
-                #     if self.current_char == "\n":
-                #         self.get_next_char()
                 previousChar = self.current_char
                 self.get_next_char()
                 if previousChar == self.current_char == '/':
