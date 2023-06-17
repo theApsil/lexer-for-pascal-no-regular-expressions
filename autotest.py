@@ -1,50 +1,67 @@
 import unittest
-from io import StringIO
 from lexer import Lexer, Token
+import sys
 
 class LexerTestCase(unittest.TestCase):
-    def test_lexer(self):
-        input_code = """
-        program HelloWorld;
-        begin
-            var x : integer;
-            writeln('Hello, World!');
-            x := -1.0;
-        end.
-        """
-
+    def test_program(self):
+        input_string = "program test; end."
         expected_tokens = [
-            Token(3, 1, 'IDENTIFIER', 'program'),
-            Token(3, 9, 'IDENTIFIER', 'HelloWorld'),
-            Token(3, 19, 'SEMICOLON', ';'),
-            Token(4, 1, 'BEGIN', 'begin'),
-            Token(5, 5, 'IDENTIFIER', 'var'),
-            Token(5, 9, 'IDENTIFIER', 'x'),
-            Token(5, 11, 'IDENTIFIER', 'integer'),
-            Token(5, 18, 'SEMICOLON', ';'),
-            Token(6, 5, 'IDENTIFIER', 'writeln'),
-            Token(6, 13, 'LPAREN', '('),
-            Token(6, 14, 'STRING', 'Hello, World!'),
-            Token(6, 29, 'RPAREN', ')'),
-            Token(6, 30, 'SEMICOLON', ';'),
-            Token(7, 5, 'IDENTIFIER', 'x'),
-            Token(7, 7, 'ASSIGN', ':='),
-            Token(7, 10, 'MINUS', '-'),
-            Token(7, 11, 'REAL', '1.0'),
-            Token(7, 14, 'SEMICOLON', ';'),
-            Token(8, 1, 'END', 'end'),
-            Token(8, 4, 'DOT', '.')
+            "Token: \tType: program \tValue: <program>",
+            "Token: \tType: identifier \tValue: <test>",
+            "Token: \tType: semicolon \tValue: <;>",
+            "Token: \tType: end \tValue: <end>",
+            "Token: \tType: dot \tValue: <.>"
         ]
+        self.assertTokensEqual(input_string, expected_tokens)
 
-        lexer = Lexer(input_code)
-        actual_tokens = []
+    def test_variables(self):
+        input_string = "var x: integer; end."
+        expected_tokens = [
+            "Token: \tType: var \tValue: <var>",
+            "Token: \tType: identifier \tValue: <x>",
+            "Token: \tType: colon \tValue: <:>",
+            "Token: \tType: integer \tValue: <integer>",
+            "Token: \tType: semicolon \tValue: <;>",
+            "Token: \tType: end \tValue: <end>",
+            "Token: \tType: dot \tValue: <.>"
+        ]
+        self.assertTokensEqual(input_string, expected_tokens)
+
+    def test_while_loop(self):
+        input_string = "while i < 10 do i := i + 1; end."
+        expected_tokens = [
+            "Token: \tType: while \tValue: <while>",
+            "Token: \tType: identifier \tValue: <i>",
+            "Token: \tType: less \tValue: <<>",
+            "Token: \tType: integer \tValue: <10>",
+            "Token: \tType: do \tValue: <do>",
+            "Token: \tType: identifier \tValue: <i>",
+            "Token: \tType: assign \tValue: <:=>",
+            "Token: \tType: identifier \tValue: <i>",
+            "Token: \tType: plus \tValue: <+>",
+            "Token: \tType: integer \tValue: <1>",
+            "Token: \tType: semicolon \tValue: <;>",
+            "Token: \tType: end \tValue: <end>",
+            "Token: \tType: dot \tValue: <.>"
+        ]
+        self.assertTokensEqual(input_string, expected_tokens)
+
+    # Add more test cases here
+
+    def assertTokensEqual(self, input_string, expected_tokens):
+        lexer = Lexer(input_string)
+        tokens = []
+        token = Token(0, 0, '', '')
         while True:
             token = lexer.get_next_token()
-            actual_tokens.append(token)
-            if token.type == Lexer.EOF:
-                break
+            tokens.append(str(token))
+            if token.value == 'end':
+                previousToken = token
+                token = lexer.get_next_token()
+                if previousToken.value == 'end' and token.value == '.':
+                    tokens.append(str(token))
+                    break
+        self.assertEqual(tokens, expected_tokens)
 
-        self.assertEqual(actual_tokens, expected_tokens)
-
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

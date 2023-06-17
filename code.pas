@@ -1,6 +1,8 @@
-program HelloWorld;
+program test;
+var a : array [1 .. 25] of integer;
+//Some comment
 begin
-var x : integer;
-    writeln('Hello, World!');
-    x := -1.0;
+    var b : integer;
+    b := 10;
+    writeln("b = ", b);
 end.
