@@ -1,5 +1,16 @@
 from enum import Enum
 from lexer import Lexer, Token
+
+class SymbolTable:
+    def __init__(self):
+        self.symbols = {}
+
+    def insert(self, name, symbol_type):
+        self.symbols[name] = symbol_type
+
+    def lookup(self, name):
+        return self.symbols.get(name, None)
+
 class NodeType(Enum):
     PROGRAM = 1
     STATEMENT_LIST = 2
@@ -50,6 +61,7 @@ class Parser:
     def __init__(self, lexer):
         self.lexer = lexer
         self.current_token = self.lexer.get_next_token()
+        self.symbol_table = SymbolTable()  # Создаем таблицу символов
 
     def parse(self):
         return self.parse_program()
@@ -194,7 +206,7 @@ class Parser:
         else:
             self.match(Lexer.DOT)
             self.match(Lexer.DOT)
-            self.match(Lexer.TO)
+            #self.match(Lexer.TO)
         expression2 = self.parse_expression()
         self.match(Lexer.DO)
         self.match(Lexer.BEGIN)
@@ -264,24 +276,42 @@ class Parser:
         return factor
 
     def parse_factor(self):
-        if self.current_token.type == Lexer.INTEGER:
-            node = Node(NodeType.INTEGER, value=self.current_token.value)
-            self.match(Lexer.INTEGER)
-            return node
-        elif self.current_token.type == Lexer.REAL:
-            node = Node(NodeType.REAL, value=self.current_token.value)
-            self.match(Lexer.REAL)
-            return node
-        elif self.current_token.type == Lexer.IDENTIFIER:
-            identifier = self.parse_identifier()
-            if self.current_token.type == Lexer.LPAREN:
-                return self.parse_function_call(identifier)
-            return identifier
-        elif self.current_token.type == Lexer.LPAREN:
-            self.match(Lexer.LPAREN)
+        """
+        factor : INTEGER
+               | REAL
+               | STRING
+               | TRUE
+               | FALSE
+               | LPAREN expr RPAREN
+               | variable
+               | function_call
+        """
+        token = self.current_token
+
+        if token.type == TokenType.INTEGER:
+            self.eat(TokenType.INTEGER)
+            return Num(token.value)
+        elif token.type == TokenType.REAL:
+            self.eat(TokenType.REAL)
+            return Num(token.value)
+        elif token.type == TokenType.STRING:
+            self.eat(TokenType.STRING)
+            return String(token.value)
+        elif token.type == TokenType.TRUE:
+            self.eat(TokenType.TRUE)
+            return Boolean(True)
+        elif token.type == TokenType.FALSE:
+            self.eat(TokenType.FALSE)
+            return Boolean(False)
+        elif token.type == TokenType.LPAREN:
+            self.eat(TokenType.LPAREN)
             node = self.parse_expression()
-            self.match(Lexer.RPAREN)
+            self.eat(TokenType.RPAREN)
             return node
+        elif self.current_token.type == TokenType.IDENTIFIER:
+            return self.parse_variable()
+        elif self.current_token.type == TokenType.IDENTIFIER_LPAREN:
+            return self.parse_function_call()
 
     def parse_function_call(self, identifier):
         self.match(Lexer.LPAREN)

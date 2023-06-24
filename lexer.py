@@ -165,7 +165,7 @@ class Lexer:
             self.current_pos += 1
             self.col += 1
         else:
-            self.current_char = None
+            self.current_char = ''
 
     def get_next_token(self):
         self.state = None
