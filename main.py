@@ -1,5 +1,5 @@
 from lexer import Lexer, Token
-from parser import Parser
+
 
 with open('code.pas', 'r') as file:
     input_code = file.read()
